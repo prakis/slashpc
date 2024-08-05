@@ -6,7 +6,8 @@
   "scripts": {
     "wget-nohost-sw": "wget https://unpkg.com/nohost/dist/nohost-sw.js -O dist/nohost-sw.js",
     "postwget-nohost-sw": "wget https://unpkg.com/nohost/dist/nohost-sw.map -O dist/nohost-sw.map",
-    "build": "parcel build src/index.html --detailed-report",
+	"copybin" : "cp src/bin dist/bin",
+    "build": "parcel build src/index.html --detailed-report && npm run copybin",
     "postbuild": "npm run wget-nohost-sw",
     "build-travis": "parcel build src/index.html --public-url /browser-shell/",
     "postbuild-travis": "npm run wget-nohost-sw",
