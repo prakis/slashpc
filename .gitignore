@@ -66,3 +66,5 @@ no-dist
 # This gets downloaded via package.json script
 src/nohost-sw.js
 src/nohost-sw.map
+
+package-lock.json
