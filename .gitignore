@@ -68,3 +68,5 @@ src/nohost-sw.js
 src/nohost-sw.map
 
 package-lock.json
+
+dist
