@@ -24,6 +24,9 @@
     "url": "https://github.com/prakis/slashpc/issues"
   },
   "homepage": "https://github.com/prakis/slashpc#readme",
+  "htmlnano": {
+    "minifySvg": false
+  },
   "dependencies": {
     "filer": "^1.1.2",
     "v86": "github:humphd/v86#filer-9p-lastknowngood",
