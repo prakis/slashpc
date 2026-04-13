@@ -342,7 +342,9 @@ const startTerminal = (emulator, term) => {
   // Suppress serial output while the command runs, then reveal the prompt.
   // This also handles warm-booted states that were saved before this change
   // (which would restore at '/ #' instead of '/mnt #').
-  emulator.serial0_send('cd /mnt\r');
+  // Sync the kernel's terminal size with xterm so full-screen apps like nano
+  // use the full window instead of the kernel's default 80×24.
+  emulator.serial0_send(`stty rows ${term.rows} cols ${term.cols}; cd /mnt\r`);
   setTimeout(() => {
     suppressOut = false;
     term.write(prompt);
@@ -426,6 +428,14 @@ const waitForPrompt = async (emulator, term) =>
     emulator.add_listener('screen-put-char', handleScreenCharData);
     emulator.add_listener('serial0-output-char', handleSerialCharData);
   });
+
+// Notify the running Linux kernel of an xterm resize so full-screen apps
+// (nano, vim, etc.) immediately adapt to the new dimensions.
+module.exports.resize = term => {
+  if (emulator && emulator.is_running()) {
+    emulator.serial0_send(`stty rows ${term.rows} cols ${term.cols}\r`);
+  }
+};
 
 const storeInitialStateOnBoot = async (emulator, term) => {
   // Wait for the prompt to come up, then start term and save the VM state
