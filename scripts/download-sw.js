@@ -20,10 +20,12 @@ function download({ url, dest }) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
     https.get(url, res => {
-      // Follow redirects (unpkg uses them)
+      // Follow redirects — resolve against base URL so relative/protocol-relative
+      // Location headers (e.g. from unpkg) don't cause "Invalid URL" on Node 18+
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         file.close();
-        download({ url: res.headers.location, dest }).then(resolve).catch(reject);
+        const redirectUrl = new URL(res.headers.location, url).href;
+        download({ url: redirectUrl, dest }).then(resolve).catch(reject);
         return;
       }
       if (res.statusCode !== 200) {
