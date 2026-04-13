@@ -42,7 +42,7 @@ Built for learning and experimentation. Everything is client-side.
 ### Install
 
 ```bash
-git clone https://github.com/your-username/slashpc.git
+git clone https://github.com/prakis/slashpc.git
 cd slashpc
 npm install
 ```
@@ -176,4 +176,16 @@ Hosted on [Cloudflare](https://www.cloudflare.com/).
 
 ## License
 
-MIT
+The /PC source code (JS, CSS, HTML) is released under the **MIT License** — see [LICENSE](./LICENSE).
+
+### Third-party binary assets
+
+The files in `src/bin/` are pre-built binary images redistributed under their respective open-source licenses:
+
+| File | Contents | License | Source |
+|---|---|---|---|
+| `v86-linux.iso` | Linux 4.15.7 kernel + BusyBox | GPLv2 | [humphd/browser-vm](https://github.com/humphd/browser-vm) |
+| `seabios.bin` | SeaBIOS firmware | LGPLv3 | [seabios.org](https://www.seabios.org/) |
+| `vgabios.bin` | Bochs VGA BIOS | LGPLv2 | [bochs.sourceforge.io](https://bochs.sourceforge.io/) |
+
+The Linux kernel and BusyBox are distributed under the GNU General Public License v2. In accordance with the GPL, the corresponding source code is available at the upstream repositories linked above.

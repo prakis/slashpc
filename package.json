@@ -1,7 +1,7 @@
 {
-  "name": "browser-shell",
+  "name": "slashpc",
   "version": "1.0.0",
-  "description": "A Linux command-line shell in the browser",
+  "description": "A full Linux shell with Python (Pyodide) that runs entirely in the browser",
   "main": "index.js",
   "scripts": {
     "dev": "parcel src/index.html",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/humphd/browser-shell.git"
+    "url": "git+https://github.com/prakis/slashpc.git"
   },
-  "author": "David Humphrey (@humphd)",
+  "author": "Kishore (@prakis)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/humphd/browser-shell/issues"
+    "url": "https://github.com/prakis/slashpc/issues"
   },
-  "homepage": "https://github.com/humphd/browser-shell#readme",
+  "homepage": "https://github.com/prakis/slashpc#readme",
   "dependencies": {
     "filer": "^1.1.2",
     "v86": "github:humphd/v86#filer-9p-lastknowngood",
