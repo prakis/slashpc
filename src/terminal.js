@@ -19,6 +19,8 @@ function start() {
     const term = createTerm();
     vm.boot(term);
 
+    window.addEventListener('resize', () => term.fit());
+
     // Whether or not the button is active or disabled (has .inactive class)
     function isInactive(elem) {
       return elem.classList.contains('inactive');

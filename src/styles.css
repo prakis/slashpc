@@ -1,17 +1,23 @@
 @import url('https://fonts.googleapis.com/css?family=Cardo:400,700|Oswald|Material+Icons');
-html{
-    height: 100%;
-}
-body {
-  margin: 0; 
-  font-family: Arial, Helvetica, sans-serif;  
-  background-color:#300A25;
-  color:white;
+html {
   height: 100%;
 }
-mainaa {
-
-    height: 90%;
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #300A25;
+  color: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 #nohost-server {
@@ -19,23 +25,95 @@ mainaa {
   height: 508px;
 }
 
+.app-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 .divterminal {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* ── Boot loader overlay ─────────────────────────────────────────── */
+.boot-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background-color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  pointer-events: none;
+}
+
+.boot-loader.hidden {
+  display: none;
+}
+
+/* Four-dot chase spinner */
+.boot-spinner {
+  display: flex;
+  gap: 10px;
+}
+
+.boot-spinner span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #c084a0;
+  animation: boot-bounce 1.2s ease-in-out infinite;
+}
+
+.boot-spinner span:nth-child(1) { animation-delay: 0s; }
+.boot-spinner span:nth-child(2) { animation-delay: 0.2s; }
+.boot-spinner span:nth-child(3) { animation-delay: 0.4s; }
+.boot-spinner span:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes boot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1.1); opacity: 1; }
+}
+
+.boot-status {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  letter-spacing: 0.02em;
+}
+
+.boot-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #666;
+  max-width: 380px;
+  text-align: center;
+  line-height: 1.5;
+  min-height: 2.4em;
+  transition: opacity 0.4s;
 }
 .title-bar {
  display: none;
 }
 .topnav {
-  overflow: hidden;
+  display: flex;
+  align-items: center;
   background-color: #300a25;
+  border-bottom: 1px solid #4a1a3a;
 }
 .divterm {
-  background-color:#252525;
-  float: left;
-  width: 120px;  
-  border-color:grey;   
-  border-width:2px;
-  border-style:solid;
-  border-bottom:none;
+  background-color: #252525;
+  width: 80px;
+  flex-shrink: 0;
+  border-right: 2px solid grey;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .subtitlediv {
@@ -44,7 +122,6 @@ mainaa {
 }
 
 .topnav .aelement {
-  float: left;
   color: #f2f2f2;
   text-align: center;
   padding: 10px 16px;
@@ -52,31 +129,25 @@ mainaa {
   font-size: 17px;
 }
 .subtitlespan {
-  float: left;
   color: #f2f2f2;
-  text-align: center;
   padding: 10px 16px;
-  padding-top: 12px;
-  text-decoration: none;
-  font-size: 17px;
+  font-size: 15px;
 }
 
-.divrightside {
- float: right;
- background-color: red;
+.nav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 8px;
 }
-.creditother {
-    color: gray;
+
+.nav-faq-link {
+  color: #c084a0;
+  font-size: 14px;
+  text-decoration: none;
 }
-footer {
-    background-color: black;
-    color: gray;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  text-align: center;    
-}
-.footerp {
-    margin: 4px;
+
+.nav-faq-link:hover {
+  text-decoration: underline;
 }

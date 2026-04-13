@@ -12,9 +12,11 @@
 <body>
     
     <div class="topnav">
-        <div class="divterm"><a href="" class="aelement active"> >_ </a> </div>
-        <div class="divsubtitle"> <span class="subtitlespan">A Linux PC in your Browser.</span> </div>
-        <!--div class="divrightside"> <a class="aelement" href="#about" >About</a> </div-->
+        <div class="divterm"><a href="" class="aelement active"> >_ </a></div>
+        <div class="divsubtitle"><span class="subtitlespan">/PC: Learn Linux, Python & Numpy in the Browser.</span></div>
+        <div class="nav-right">
+            <a class="aelement nav-faq-link" target="_blank" href="faq.html">FAQ</a>
+        </div>
     </div>
 
     <main>
@@ -24,7 +26,15 @@
                 <i id="term-play" title="Start" class="material-icons md-48 inactive">play_circle_outline</i>
                 <i id="term-pause" title="Stop" class="material-icons md-48 inactive">pause_circle_outline</i>
             </div>
-            <div class="divterminal" id="terminal"></div>
+            <div class="divterminal" id="terminal">
+                <div class="boot-loader" id="boot-loader">
+                    <div class="boot-spinner">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <p class="boot-status" id="boot-status">Starting Linux…</p>
+                    <p class="boot-hint" id="boot-hint">Booting the virtual machine</p>
+                </div>
+            </div>
         </div>
 
         <!-- XXX: if you want the v86 console for some reason -->
@@ -35,26 +45,6 @@
         <!-- XXX: button assumed in libv86.js crashes without this -->
         <button id="start_emulation" hidden>Start Emulation</button>
     </main>
-    <div class="creditother">
-        <p>
-			* You can ignore 'Physical KASLR disabled: no suitable memory region!", give it sometime, it loads fine.
-		</p>
-		<p>		
-            On the first visit, it may take some time to load, next visit's are fast.
-        </p>
-        <p>
-            The speciality of this <a target="_blank" href="https://twitter.com/humphd">David Humphrey's</a> setup is, it preserves the current state in the browser cache (storage). Even if you close the browser window, 
-            your changes are saved and will be retrieved the next time you open the page.
-        </p>
-    </div>
-    <div class="creditother">
-            <p class="footerp">
-            Credits: Built using <em> <a target="_blank" href="https://twitter.com/humphd">David Humphrey's</a></em> Github: 
-                <a  target="_blank" href="https://github.com/humphd/browser-shell">browser-shell</a> project. Hosted on 
-                <a target="_blank" href="https://www.cloudflare.com/">Cloudflare</a>.
-            Feature requests, bugs <a target="_blank" href="https://twitter.com/prakis">let me know</a>.
-        </p>
-    </div>
     <script src="./index.js"></script>
 </body>
 <!-- Google tag (gtag.js) -->

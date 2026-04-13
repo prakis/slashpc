@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>/PC - FAQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Frequently asked questions about /PC - Linux in the Browser.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="faq.css">
+    <link href="./favicon.ico" rel="icon" type="image/x-icon">
+</head>
+<body class="faq-body">
+
+    <div class="topnav">
+        <div class="divterm"><a href="index.html" class="aelement"> >_ </a></div>
+        <div class="divsubtitle"><span class="subtitlespan">/PC: Learn Linux, Python & Numpy in the Browser.</span></div>
+        <div class="nav-right">
+            <a class="aelement nav-faq-link nav-faq-active" href="faq.html">FAQ</a>
+        </div>
+    </div>
+
+    <div class="faq-container">
+
+        <h1 class="faq-title">Frequently Asked Questions</h1>
+
+        <section class="faq-section">
+            <h2>Getting Started</h2>
+
+            <div class="faq-item">
+                <h3>Why does it take so long to load the first time?</h3>
+                <p>
+                    On the first visit, the browser downloads the Linux OS image (~6 MB), the v86 CPU emulator,
+                    and all supporting files. This can take 15–30 seconds depending on your connection.
+                    <strong>After the first visit everything is cached</strong> — subsequent loads are fast (2–4 seconds).
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h3>I see "Physical KASLR disabled: no suitable memory region!" — is something broken?</h3>
+                <p>
+                    No. This is a normal kernel boot message from the emulated Linux kernel. You can safely ignore it.
+                    Give it a few seconds and the shell prompt will appear.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What Linux distribution is this?</h3>
+                <p>
+                    It runs a lightweight <strong>BusyBox Linux 4.15.7</strong> kernel compiled specifically for
+                    the <a href="https://github.com/copy/v86" target="_blank">v86 x86 emulator</a>.
+                    It includes a full shell (ash/sh), standard POSIX utilities, and common tools like
+                    <code>vi</code>, <code>grep</code>, <code>awk</code>, <code>sed</code>, <code>find</code>, and more.
+                </p>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h2>Files &amp; Storage</h2>
+
+            <div class="faq-item">
+                <h3>Are my files saved when I close the browser?</h3>
+                <p>
+                    <strong>Yes</strong> — files saved inside <code>/mnt</code> are stored in your browser's
+                    <strong>IndexedDB</strong> and persist across sessions. Even if you close the tab or restart
+                    the browser, your files will be there when you come back.
+                </p>
+                <p>
+                    Files saved outside of <b><code>/mnt</code></b> (e.g. in <code>/root</code> or <code>/home</code>)
+                    exist only in the emulated VM's memory and will be lost on reload.
+                    <strong>Always save your work to <b><code>/mnt</code></b>.</strong>
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I drag and drop files into the shell?</h3>
+                <p>
+                    Yes. Drag any file from your desktop onto the page and it will be imported into the
+                    browser filesystem, accessible at <code>/mnt/&lt;filename&gt;</code>.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h3>How do I clear all saved data and start fresh?</h3>
+                <p>
+                    Open your browser's developer tools → Application → Storage → Clear Site Data.
+                    This removes the cached VM state and all files in IndexedDB.
+                    The next page load will perform a cold boot.
+                </p>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h2>Python</h2>
+
+            <div class="faq-item">
+                <h3>Is Python available?</h3>
+                <p>
+                    <strong>Yes</strong> — this page loads <a href="https://pyodide.org" target="_blank">Pyodide</a>
+                    (Python 3.11 compiled to WebAssembly) in the background.
+                    Once the <span class="badge-inline">Python ✓</span> badge appears in the top bar,
+                    you can use Python via the browser console:
+                </p>
+                <pre class="faq-code">pyodide.runPython(`
+import numpy as np
+a = np.array([1, 2, 3])
+print(a * 2)
+`)</pre>
+                <p>NumPy is pre-loaded automatically.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I run Python files I saved in <code>/mnt</code>?</h3>
+                <p>
+                    Yes. Read the file from the Filer filesystem and pass it to Pyodide:
+                </p>
+                <pre class="faq-code">// In the browser console:
+fs.readFile('/mnt/hello.py', 'utf8', (err, code) => {
+  pyodide.runPython(code);
+});</pre>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I install additional Python packages?</h3>
+                <p>
+                    Yes, using <code>micropip</code>. Run this in the browser console:
+                </p>
+                <pre class="faq-code">await pyodide.loadPackage('micropip');
+const micropip = pyodide.pyimport('micropip');
+await micropip.install('requests');</pre>
+                <p>
+                    Pyodide includes over 200 pre-built scientific packages.
+                    See the <a href="https://pyodide.org/en/stable/usage/packages-in-pyodide.html" target="_blank">full package list</a>.
+                </p>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h2>Technical Details</h2>
+
+            <div class="faq-item">
+                <h3>How does this work?</h3>
+                <p>
+                    The terminal is powered by three open-source projects:
+                </p>
+                <ul>
+                    <li><strong><a href="https://github.com/copy/v86" target="_blank">v86</a></strong> — an x86 CPU emulator written in JavaScript/WebAssembly that boots a real Linux kernel entirely in the browser.</li>
+                    <li><strong><a href="https://xtermjs.org/" target="_blank">xterm.js</a></strong> — a full-featured terminal emulator component.</li>
+                    <li><strong><a href="https://github.com/filerjs/filer" target="_blank">Filer</a></strong> — a Node.js-compatible filesystem API backed by IndexedDB, bridged into the Linux VM via the 9P protocol.</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h3>Does any of my code or data leave my computer?</h3>
+                <p>
+                    <strong>No.</strong> Everything runs entirely in your browser. The Linux VM, your files,
+                    and Python execution all happen client-side. No data is sent to any server.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What is the download size?</h3>
+                <ul>
+                    <li><strong>First visit:</strong> ~6.5 MB (Linux OS + emulator + app) + ~18 MB (Pyodide + NumPy, loaded in background)</li>
+                    <li><strong>Subsequent visits:</strong> served from browser cache — no network requests for the main assets.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h2>Credits</h2>
+
+            <div class="faq-item">
+                <p>
+                    Built on top of <a href="https://twitter.com/humphd" target="_blank">David Humphrey's</a>
+                    <a href="https://github.com/humphd/browser-shell" target="_blank">browser-shell</a> project.
+                    Hosted on <a href="https://www.cloudflare.com/" target="_blank">Cloudflare</a>.
+                </p>
+                <p>
+                    Feature requests or bugs? <a href="https://twitter.com/prakis" target="_blank">Let me know</a>.
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>
