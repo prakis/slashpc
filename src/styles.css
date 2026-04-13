@@ -151,3 +151,22 @@ main {
 .nav-faq-link:hover {
   text-decoration: underline;
 }
+
+.nav-github-link {
+  display: flex;
+  align-items: center;
+  color: #c084a0;
+  padding: 10px 8px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-github-link:hover {
+  color: #e8b4c8;
+}
+
+.github-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
