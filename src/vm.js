@@ -72,6 +72,128 @@ const getVMStartOptions = () => {
 
 let emulator = null;
 
+// ── Python REPL state ─────────────────────────────────────────────────────────
+
+let pythonReplActive = false;
+let replInputLine    = '';
+let replLineBuffer   = [];   // accumulates lines for multi-line blocks
+let _replPushFn      = null; // cached Python proxy for _repl_push()
+
+// Activate the interactive Python REPL.  Sets up Pyodide stdout/stderr,
+// installs a tiny CommandCompiler-based push function in Python, and prints
+// the opening banner + first prompt.
+async function startPythonRepl(term) {
+  const pyodide = window.pyodide;
+  if (!pyodide) {
+    term.writeln(`\r${ANSI_YELLOW}[/PC] Python is still loading — wait for the "Python ✓" badge and try again.${ANSI_RESET}`);
+    return;
+  }
+
+  // Redirect output so print() / tracebacks go to the xterm terminal.
+  // Replace bare \n with \r\n so xterm renders newlines correctly.
+  pyodide.setStdout({ batched: text => term.write(text.replace(/\n/g, '\r\n')) });
+  pyodide.setStderr({ batched: text => term.write(`${ANSI_RED}${text.replace(/\n/g, '\r\n')}${ANSI_RESET}`) });
+
+  // Install a reusable _repl_push(source) helper in Pyodide.
+  // Uses codeop.CommandCompiler (same mechanism as Python's own REPL):
+  //   returns 'incomplete' when more input is needed (e.g. inside a def/for)
+  //   returns 'complete'   after successful execution
+  //   returns 'error'      on SyntaxError / runtime exception (traceback printed to stderr)
+  //   returns 'exit'       when the user calls exit() / quit()
+  await pyodide.runPythonAsync(`
+from codeop import CommandCompiler as _CC
+import traceback as _tb
+
+_compile      = _CC()
+_repl_globals = {'__name__': '__console__', '__doc__': None}
+
+def _repl_push(source):
+    try:
+        code_obj = _compile(source, '<stdin>', 'single')
+        if code_obj is None:
+            return 'incomplete'
+        exec(code_obj, _repl_globals)
+        return 'complete'
+    except SystemExit:
+        return 'exit'
+    except BaseException:
+        _tb.print_exc()
+        return 'error'
+`);
+
+  if (_replPushFn) _replPushFn.destroy();
+  _replPushFn = pyodide.globals.get('_repl_push');
+
+  pythonReplActive = true;
+  replInputLine    = '';
+  replLineBuffer   = [];
+
+  term.writeln(`\r${ANSI_YELLOW}Python ${pyodide.version} (Pyodide / WebAssembly)${ANSI_RESET}`);
+  term.writeln(`\r${ANSI_DIM}Type "exit()" or press Ctrl+D to return to the shell.${ANSI_RESET}`);
+  term.write('\r>>> ');
+}
+
+// Exit REPL mode and restore the shell prompt.
+function exitPythonRepl(term, vmCwd) {
+  pythonReplActive = false;
+  replInputLine    = '';
+  replLineBuffer   = [];
+  if (_replPushFn) { _replPushFn.destroy(); _replPushFn = null; }
+  term.write('\r\n' + vmCwd + ' # ');
+}
+
+// Handle a single key press while the REPL is active.
+async function handleReplKey(key, term, vmCwd) {
+  if (key === '\r') { // ── Enter ────────────────────────────────────────────
+    const line = replInputLine;
+    replInputLine = '';
+    term.write('\r\n');
+
+    replLineBuffer.push(line);
+    const source = replLineBuffer.join('\n');
+
+    let status = 'error';
+    try {
+      status = _replPushFn(source);
+    } catch (e) {
+      console.error('[REPL] push error', e);
+    }
+
+    if (status === 'incomplete') {
+      term.write('... ');
+    } else if (status === 'exit') {
+      replLineBuffer = [];
+      exitPythonRepl(term, vmCwd);
+    } else {
+      // 'complete' or 'error' — either way show the next prompt
+      replLineBuffer = [];
+      term.write('>>> ');
+    }
+
+  } else if (key === '\x04') { // ── Ctrl+D (EOF) ─────────────────────────────
+    if (replInputLine === '' && replLineBuffer.length === 0) {
+      term.write('\r\n');
+      exitPythonRepl(term, vmCwd);
+    }
+
+  } else if (key === '\x03') { // ── Ctrl+C (interrupt) ───────────────────────
+    replInputLine  = '';
+    replLineBuffer = [];
+    term.write('\r\nKeyboardInterrupt\r\n>>> ');
+
+  } else if (key === '\x7f') { // ── Backspace ─────────────────────────────────
+    if (replInputLine.length > 0) {
+      replInputLine = replInputLine.slice(0, -1);
+      term.write('\b \b');
+    }
+
+  } else if (key.length === 1) { // ── Printable character ───────────────────
+    replInputLine += key;
+    term.write(key);
+  }
+  // All other keys (arrow keys, function keys, etc.) are silently ignored.
+}
+
 module.exports.boot = async term => {
   if (emulator) {
     return;
@@ -227,10 +349,7 @@ async function runPythonInTerminal(line, term, vmCwd) {
   const parsed = parsePythonCommand(line);
 
   if (parsed.mode === 'repl') {
-    term.writeln(`\r${ANSI_YELLOW}Python ${pyodide.version} (Pyodide / WebAssembly)${ANSI_RESET}`);
-    term.writeln(`\r${ANSI_DIM}Interactive REPL is not yet supported in this shell.${ANSI_RESET}`);
-    term.writeln(`\r${ANSI_DIM}Use:  python -c "print('hello')"${ANSI_RESET}`);
-    term.writeln(`\r${ANSI_DIM}      python script.py   (file must be saved in /mnt)${ANSI_RESET}`);
+    await startPythonRepl(term);
     return;
   }
 
@@ -282,7 +401,7 @@ const startTerminal = (emulator, term) => {
   hideLoader();
   term.reset();
   term.writeln(`Linux 4.15.7  |  Python ${ANSI_CYAN}✓${ANSI_RESET} via Pyodide  |  Files persist in ${ANSI_CYAN}/mnt${ANSI_RESET}`);
-  term.writeln(`${ANSI_DIM}Try: echo "print('hello')" > /mnt/hi.py  then: python hi.py${ANSI_RESET}`);
+  term.writeln(`${ANSI_DIM}Try: python  (REPL)  |  python -c "print('hi')"  |  python script.py${ANSI_RESET}`);
 
   let inputLine   = '';
   let suppressOut = true;   // suppress serial until auto-cd completes
@@ -290,6 +409,12 @@ const startTerminal = (emulator, term) => {
 
   // Input handler — intercepts python commands, passes everything else to the VM
   term.on('key', async (key) => {
+    // ── REPL mode: all keys go to the Python interpreter, not the VM ──────────
+    if (pythonReplActive) {
+      await handleReplKey(key, term, vmCwd);
+      return;
+    }
+
     if (key === '\r') { // Enter
       // Read the actual terminal display line — ground truth that includes
       // tab-completions, history (arrow keys), paste, etc.
@@ -313,7 +438,10 @@ const startTerminal = (emulator, term) => {
         await sleep(80);
         suppressOut = false;
         await runPythonInTerminal(command, term, vmCwd);
-        term.write('\r\n' + vmCwd + ' # ');
+        // Don't overwrite the REPL's own '>>> ' prompt when entering REPL mode
+        if (!pythonReplActive) {
+          term.write('\r\n' + vmCwd + ' # ');
+        }
       } else {
         emulator.serial0_send(key);
       }
